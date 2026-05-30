@@ -1,0 +1,210 @@
+.birthday-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+}
+
+.birthday-content {
+  text-align: center;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0.8);
+  animation: fadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.birthday-content.fade-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.birthday-title {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+  animation: slideDown 0.6s ease-out;
+}
+
+.birthday-name {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 40px;
+  animation: slideUp 0.6s ease-out 0.2s backwards;
+  letter-spacing: 2px;
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.open-button {
+  padding: 18px 40px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ff006e 0%, #f72585 100%);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(255, 0, 110, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.open-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(255, 0, 110, 0.6);
+  background: linear-gradient(135deg, #f72585 0%, #d80058 100%);
+}
+
+.open-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 0, 110, 0.4);
+}
+
+.button-icon {
+  font-size: 1.4rem;
+  display: inline-block;
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.button-text {
+  display: inline-block;
+}
+
+/* Stars animation */
+.stars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  font-size: 2rem;
+  color: #ffd700;
+  opacity: 0;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Confetti animation */
+.confetti-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  bottom: 100%;
+  pointer-events: none;
+  animation: fall 3s linear infinite;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .birthday-title {
+    font-size: 2.5rem;
+  }
+
+  .birthday-name {
+    font-size: 2rem;
+  }
+
+  .open-button {
+    padding: 14px 28px;
+    font-size: 1rem;
+  }
+}
