@@ -9,31 +9,72 @@ export default function PhotoCarousel3D({ soundManager, onRestart }) {
   const containerRef = useRef(null)
 
   useEffect(() => {
-    // Load images from assets/photos folder
-    // For now, we'll create placeholder images
-    loadPlaceholderPhotos()
+    // Load images from public/images folder
+    loadPhotos()
   }, [])
+
+  const loadPhotos = async () => {
+    try {
+      // List of images in the public/images folder
+      const imageFiles = [
+        '/images/4.HEIC',
+        '/images/5.HEIC',
+        '/images/download.png'
+      ]
+      
+      // Filter to only include files that exist
+      const validPhotos = []
+      
+      for (const file of imageFiles) {
+        // Check if file exists by trying to load it
+        try {
+          const img = new Image()
+          img.src = file
+          await new Promise((resolve, reject) => {
+            img.onload = resolve
+            img.onerror = reject
+            // Set timeout for slow/missing images
+            setTimeout(reject, 3000)
+          })
+          validPhotos.push(file)
+        } catch (e) {
+          console.log(`Could not load image: ${file}`)
+        }
+      }
+      
+      if (validPhotos.length === 0) {
+        // Fallback to placeholder messages if no images found
+        setPhotos([
+          'Happy Birthday Gimzy! 🎉',
+          'Making memories together 💝',
+          'Celebrations and joy! ✨',
+          'Wishing you the best! 🎊',
+          'Let\'s celebrate! 🎈',
+          'With love and cheers! 🥳'
+        ])
+      } else {
+        setPhotos(validPhotos)
+      }
+    } catch (error) {
+      console.error('Error loading photos:', error)
+      // Fallback to placeholder messages
+      setPhotos([
+        'Happy Birthday Gimzy! 🎉',
+        'Making memories together 💝',
+        'Celebrations and joy! ✨',
+        'Wishing you the best! 🎊',
+        'Let\'s celebrate! 🎈',
+        'With love and cheers! 🥳'
+      ])
+    }
+    setIsLoading(false)
+  }
 
   useEffect(() => {
     if (soundManager && !isMuted) {
       soundManager.playMusic()
     }
   }, [soundManager, isMuted])
-
-  const loadPlaceholderPhotos = () => {
-    // Create placeholder images - user will replace these with actual photos
-    const placeholders = [
-      'Happy Birthday Gimzy! 🎉',
-      'Making memories together 💝',
-      'Celebrations and joy! ✨',
-      'Wishing you the best! 🎊',
-      'Let\'s celebrate! 🎈',
-      'With love and cheers! 🥳'
-    ]
-    
-    setPhotos(placeholders)
-    setIsLoading(false)
-  }
 
   const handleNextPhoto = () => {
     if (photos.length > 0) {
@@ -94,7 +135,17 @@ export default function PhotoCarousel3D({ soundManager, onRestart }) {
         <div className="photos-display">
           {/* Main photo */}
           <div className="main-photo">
-            {photos[currentPhotoIndex]}
+            {photos[currentPhotoIndex] && photos[currentPhotoIndex].startsWith('/images/') ? (
+              <img 
+                src={photos[currentPhotoIndex]} 
+                alt={`Photo ${currentPhotoIndex + 1}`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }}
+              />
+            ) : (
+              <div style={{ fontSize: '1.8rem', textAlign: 'center' }}>
+                {photos[currentPhotoIndex]}
+              </div>
+            )}
           </div>
 
           {/* Thumbnail strip */}
