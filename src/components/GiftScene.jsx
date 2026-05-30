@@ -68,18 +68,31 @@ export default function GiftScene({ showPhotos, onUnwrapComplete, onRestart }) {
 
       <AnimatePresence>
         {!giftOpened && (
-          <motion.div
-            className="gift-hud"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-          >
-            <div className="gift-hud-handle" aria-hidden="true" />
-            <p>Tap the gift to unlock the surprise</p>
-            <button type="button" className="gift-action" onClick={handleRequestOpen}>
-              Open the gift
-            </button>
-          </motion.div>
+          isCompact ? (
+            <motion.div
+              className="gift-hud compact"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+            >
+              <button type="button" className="gift-action compact" onClick={handleRequestOpen}>
+                Open the gift
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="gift-hud"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+            >
+              <div className="gift-hud-handle" aria-hidden="true" />
+              <p>Tap the gift to unlock the surprise</p>
+              <button type="button" className="gift-action" onClick={handleRequestOpen}>
+                Open the gift
+              </button>
+            </motion.div>
+          )
         )}
       </AnimatePresence>
 
