@@ -3,7 +3,12 @@ import { AnimatePresence, motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import '../styles/PhotoCarousel3D.css'
 
-const fallbackPhotoPaths = ['/images/download.png', '/images/4.png', '/images/5.png']
+const basePath = import.meta.env.BASE_URL ?? '/'
+const fallbackPhotoPaths = [
+  `${basePath}images/download.png`,
+  `${basePath}images/4.png`,
+  `${basePath}images/5.png`,
+]
 
 function createLabel(path) {
   const fileName = path.split('/').pop() || 'memory'
