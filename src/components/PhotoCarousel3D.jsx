@@ -4,8 +4,8 @@ import confetti from 'canvas-confetti'
 import '../styles/PhotoCarousel3D.css'
 
 const basePath = import.meta.env.BASE_URL ?? '/'
+// Only include image files that exist in `public/images`
 const fallbackPhotoPaths = [
-  `${basePath}images/download.png`,
   `${basePath}images/4.png`,
   `${basePath}images/5.png`,
 ]
