@@ -17,8 +17,8 @@ export default function PhotoCarousel3D({ soundManager, onRestart }) {
     try {
       // List of images in the public/images folder
       const imageFiles = [
-        '/images/4.HEIC',
-        '/images/5.HEIC',
+        '/images/4.png',
+        '/images/5.png',
         '/images/download.png'
       ]
       
