@@ -1,37 +1,42 @@
 import { useState } from 'react'
-import './App.css'
+import { AnimatePresence } from 'framer-motion'
 import BirthdayScreen from './components/BirthdayScreen'
 import GiftScene from './components/GiftScene'
+import './App.css'
 
 function App() {
-  const [isGiftOpened, setIsGiftOpened] = useState(false)
+  const [stage, setStage] = useState('intro')
   const [showPhotos, setShowPhotos] = useState(false)
 
   const handleOpenPresent = () => {
-    setIsGiftOpened(true)
+    setStage('reveal')
   }
 
   const handleUnwrapComplete = () => {
     setShowPhotos(true)
+    setStage('gallery')
   }
 
   const handleRestart = () => {
-    setIsGiftOpened(false)
+    setStage('intro')
     setShowPhotos(false)
   }
 
   return (
-    <div className="app">
-      {!isGiftOpened ? (
-        <BirthdayScreen onOpenClick={handleOpenPresent} />
-      ) : (
-        <GiftScene
-          showPhotos={showPhotos}
-          onUnwrapComplete={handleUnwrapComplete}
-          onRestart={handleRestart}
-        />
-      )}
-    </div>
+    <main className="app-shell">
+      <AnimatePresence mode="wait">
+        {stage === 'intro' ? (
+          <BirthdayScreen key="intro" onOpenClick={handleOpenPresent} />
+        ) : (
+          <GiftScene
+            key="scene"
+            showPhotos={showPhotos}
+            onUnwrapComplete={handleUnwrapComplete}
+            onRestart={handleRestart}
+          />
+        )}
+      </AnimatePresence>
+    </main>
   )
 }
 

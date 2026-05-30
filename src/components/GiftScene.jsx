@@ -1,113 +1,91 @@
-import React, { useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Canvas } from '@react-three/fiber'
+import { Environment, PerspectiveCamera, Sparkles } from '@react-three/drei'
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import GiftUnwrap from './GiftUnwrap'
 import PhotoCarousel3D from './PhotoCarousel3D'
-import { SoundManager } from '../utils/SoundManager'
 import '../styles/GiftScene.css'
 
 export default function GiftScene({ showPhotos, onUnwrapComplete, onRestart }) {
-  const containerRef = useRef(null)
-  const sceneRef = useRef(null)
-  const cameraRef = useRef(null)
-  const rendererRef = useRef(null)
-  const giftUnwrapRef = useRef(null)
-  const soundManagerRef = useRef(null)
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [giftOpened, setGiftOpened] = useState(false)
 
-  useEffect(() => {
-    if (!containerRef.current) return
+  const handleRequestOpen = () => {
+    setGiftOpened(true)
+  }
 
-    // Initialize Three.js scene
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x1a1a2e)
-    sceneRef.current = scene
-
-    // Setup camera
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      containerRef.current.clientWidth / containerRef.current.clientHeight,
-      0.1,
-      1000
-    )
-    camera.position.z = 5
-    cameraRef.current = camera
-
-    // Setup renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight)
-    renderer.shadowMap.enabled = true
-    renderer.shadowMap.type = THREE.PCFShadowMap
-    containerRef.current.appendChild(renderer.domElement)
-    rendererRef.current = renderer
-
-    // Add lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-    scene.add(ambientLight)
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-    directionalLight.position.set(5, 5, 5)
-    directionalLight.castShadow = true
-    directionalLight.shadow.mapSize.width = 2048
-    directionalLight.shadow.mapSize.height = 2048
-    scene.add(directionalLight)
-
-    // Initialize Sound Manager
-    soundManagerRef.current = new SoundManager()
-
-    // Initialize Gift Unwrap
-    giftUnwrapRef.current = new GiftUnwrap(scene, camera, renderer, onUnwrapComplete)
-
-    // Handle window resize
-    const handleResize = () => {
-      if (!containerRef.current) return
-      const width = containerRef.current.clientWidth
-      const height = containerRef.current.clientHeight
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-      renderer.setSize(width, height)
-    }
-
-    window.addEventListener('resize', handleResize)
-
-    // Animation loop
-    const animate = () => {
-      requestAnimationFrame(animate)
-      
-      if (giftUnwrapRef.current) {
-        giftUnwrapRef.current.update()
-      }
-
-      renderer.render(scene, camera)
-    }
-
-    animate()
-    setIsInitialized(true)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
-        containerRef.current.removeChild(renderer.domElement)
-      }
-      renderer.dispose()
-    }
-  }, [onUnwrapComplete])
+  const handleRevealComplete = () => {
+    onUnwrapComplete?.()
+  }
 
   return (
-    <div className="gift-scene-container">
-      <div ref={containerRef} className="three-canvas-container" />
-      
-      {showPhotos && (
-        <PhotoCarousel3D
-          soundManager={soundManagerRef.current}
-          onRestart={onRestart}
-        />
-      )}
+    <motion.section
+      className="gift-scene"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.45 }}
+    >
+      <Canvas dpr={[1, 1.75]} shadows>
+        <PerspectiveCamera makeDefault position={[0, 0.2, 7]} fov={40} />
+        <color attach="background" args={['#090b18']} />
+        <fog attach="fog" args={['#090b18', 6, 15]} />
 
-      {!showPhotos && (
-        <div className="gift-instructions">
-          <p>Click on the gift to unwrap it!</p>
-        </div>
-      )}
-    </div>
+        <ambientLight intensity={0.9} />
+        <directionalLight position={[4, 8, 5]} intensity={2.2} castShadow />
+        <pointLight position={[-4, -1, 3]} intensity={1.6} color="#ff88d1" />
+        <spotLight position={[0, 7, 6]} angle={0.4} intensity={18} penumbra={1} color="#ffd166" />
+
+        <Sparkles count={120} scale={[12, 8, 12]} size={2.5} speed={0.35} color="#ffe37d" />
+
+        <GiftUnwrap
+          opened={giftOpened}
+          onRequestOpen={handleRequestOpen}
+          onRevealComplete={handleRevealComplete}
+        />
+
+        <Environment preset="night" />
+
+        <EffectComposer>
+          <Bloom intensity={1.45} luminanceThreshold={0.15} luminanceSmoothing={0.25} />
+          <Vignette eskil={false} offset={0.18} darkness={0.95} />
+        </EffectComposer>
+      </Canvas>
+
+      <AnimatePresence>
+        {!giftOpened && (
+          <motion.div
+            className="gift-hud"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+          >
+            <p>Tap the gift to unlock the surprise</p>
+            <button type="button" className="gift-action" onClick={handleRequestOpen}>
+              Open the gift
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {giftOpened && !showPhotos && (
+          <motion.div
+            className="gift-toast"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            The room is opening...
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button type="button" className="restart-button" onClick={onRestart}>
+        Restart
+      </button>
+
+      <AnimatePresence>{showPhotos ? <PhotoCarousel3D key="gallery" onRestart={onRestart} /> : null}</AnimatePresence>
+    </motion.section>
   )
 }

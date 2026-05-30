@@ -1,186 +1,123 @@
-import * as THREE from 'three'
+import { useEffect, useRef } from 'react'
+import { Float, RoundedBox, Sparkles, Text } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
+import gsap from 'gsap'
 
-export default class GiftUnwrap {
-  constructor(scene, camera, renderer, onUnwrapComplete) {
-    this.scene = scene
-    this.camera = camera
-    this.renderer = renderer
-    this.onUnwrapComplete = onUnwrapComplete
-    this.giftGroup = new THREE.Group()
-    this.scene.add(this.giftGroup)
-    
-    this.isUnwrapping = false
-    this.unwrapProgress = 0
-    this.unwrapSpeed = 0.03
-    
-    this.createGiftBox()
-    this.addInteraction()
-  }
+function GiftRibbon() {
+  return (
+    <group>
+      <mesh position={[0, 1.18, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.38, 0.12, 16, 48]} />
+        <meshStandardMaterial color="#ffd166" roughness={0.26} metalness={0.5} />
+      </mesh>
+      <mesh position={[0, 1.18, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <boxGeometry args={[0.18, 0.92, 0.18]} />
+        <meshStandardMaterial color="#ffd166" roughness={0.28} metalness={0.42} />
+      </mesh>
+      <mesh position={[0, 1.18, 0]}>
+        <boxGeometry args={[0.92, 0.18, 0.18]} />
+        <meshStandardMaterial color="#ffd166" roughness={0.28} metalness={0.42} />
+      </mesh>
+    </group>
+  )
+}
 
-  createGiftBox() {
-    // Create main box (gift box)
-    const boxGeometry = new THREE.BoxGeometry(2, 2, 2)
-    const boxMaterial = new THREE.MeshStandardMaterial({
-      color: 0xff1744,
-      metalness: 0.3,
-      roughness: 0.4
-    })
-    const box = new THREE.Mesh(boxGeometry, boxMaterial)
-    box.castShadow = true
-    box.receiveShadow = true
-    this.giftGroup.add(box)
+export default function GiftUnwrap({ opened, onRequestOpen, onRevealComplete }) {
+  const rootRef = useRef()
+  const lidRef = useRef()
+  const bodyRef = useRef()
+  const ribbonRef = useRef()
+  const shimmerRef = useRef()
+  const completedRef = useRef(false)
 
-    // Create lid
-    const lidGeometry = new THREE.BoxGeometry(2.1, 0.3, 2.1)
-    const lidMaterial = new THREE.MeshStandardMaterial({
-      color: 0xff5722,
-      metalness: 0.2,
-      roughness: 0.5
-    })
-    const lid = new THREE.Mesh(lidGeometry, lidMaterial)
-    lid.position.y = 1.15
-    lid.castShadow = true
-    lid.receiveShadow = true
-    this.giftGroup.add(lid)
-    this.lid = lid
-
-    // Create bow (using a torus)
-    const bowGeometry = new THREE.TorusGeometry(0.4, 0.15, 16, 100)
-    const bowMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      metalness: 0.5,
-      roughness: 0.3
-    })
-    const bow = new THREE.Mesh(bowGeometry, bowMaterial)
-    bow.position.set(0, 1.3, 0)
-    bow.rotation.x = Math.PI / 2
-    bow.castShadow = true
-    this.giftGroup.add(bow)
-    this.bow = bow
-
-    // Create wrapping paper pieces for animation
-    this.paperPieces = []
-    for (let i = 0; i < 8; i++) {
-      const paperGeometry = new THREE.PlaneGeometry(0.8, 1.2)
-      const paperMaterial = new THREE.MeshStandardMaterial({
-        color: 0xffc107,
-        side: THREE.DoubleSide,
-        metalness: 0.1,
-        roughness: 0.6
-      })
-      const paper = new THREE.Mesh(paperGeometry, paperMaterial)
-      
-      const angle = (i / 8) * Math.PI * 2
-      paper.position.set(
-        Math.cos(angle) * 2.5,
-        1,
-        Math.sin(angle) * 2.5
-      )
-      
-      this.paperPieces.push({
-        mesh: paper,
-        velocity: new THREE.Vector3(
-          Math.cos(angle) * 0.02,
-          0.01,
-          Math.sin(angle) * 0.02
-        ),
-        rotationVelocity: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1
-        )
-      })
+  useEffect(() => {
+    if (!opened || completedRef.current) {
+      return undefined
     }
 
-    // Initial rotation
-    this.giftGroup.rotation.x = 0.3
-    this.giftGroup.rotation.y = 0.5
-  }
-
-  addInteraction() {
-    const raycaster = new THREE.Raycaster()
-    const mouse = new THREE.Vector2()
-
-    const onMouseClick = (event) => {
-      if (this.isUnwrapping) return
-
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
-
-      raycaster.setFromCamera(mouse, this.camera)
-      const intersects = raycaster.intersectObjects(this.giftGroup.children)
-
-      if (intersects.length > 0) {
-        this.startUnwrap()
-      }
-    }
-
-    window.addEventListener('click', onMouseClick)
-    this.onMouseClick = onMouseClick
-  }
-
-  startUnwrap() {
-    this.isUnwrapping = true
-    
-    // Add paper pieces to scene
-    this.paperPieces.forEach(piece => {
-      this.scene.add(piece.mesh)
+    const timeline = gsap.timeline({
+      defaults: { ease: 'power3.inOut' },
+      onComplete: () => {
+        completedRef.current = true
+        onRevealComplete?.()
+      },
     })
-  }
 
-  update() {
-    if (this.isUnwrapping) {
-      this.unwrapProgress += this.unwrapSpeed
+    timeline.to(bodyRef.current.material, { opacity: 0.72, duration: 0.35 }, 0)
+    timeline.to(lidRef.current.position, { y: 2.05, z: 0.7, duration: 0.95 }, 0)
+    timeline.to(lidRef.current.rotation, { x: -1.25, y: 0.45, duration: 0.95 }, 0)
+    timeline.to(ribbonRef.current.scale, { x: 0.04, y: 0.04, z: 0.04, duration: 0.7 }, 0.08)
+    timeline.to(rootRef.current.position, { y: 0.18, duration: 0.65 }, 0.12)
+    timeline.to(shimmerRef.current.material, { opacity: 1, duration: 0.55 }, 0.22)
+    timeline.to(shimmerRef.current.scale, { x: 2.35, y: 2.35, z: 2.35, duration: 0.9 }, 0.14)
 
-      if (this.unwrapProgress <= 1) {
-        // Lift the lid
-        this.lid.position.y = 1.15 + this.unwrapProgress * 2
+    return () => timeline.kill()
+  }, [opened, onRevealComplete])
 
-        // Rotate lid away
-        this.lid.rotation.x = this.unwrapProgress * Math.PI * 0.3
-
-        // Fade out the main box
-        this.giftGroup.children[0].material.opacity = 1 - this.unwrapProgress * 0.5
-        this.giftGroup.children[0].material.transparent = true
-
-        // Animate bow
-        this.bow.scale.set(
-          1 - this.unwrapProgress * 0.3,
-          1 - this.unwrapProgress * 0.3,
-          1 - this.unwrapProgress * 0.3
-        )
-
-        // Animate paper pieces
-        this.paperPieces.forEach(piece => {
-          piece.mesh.position.add(piece.velocity)
-          piece.mesh.rotation.x += piece.rotationVelocity.x
-          piece.mesh.rotation.y += piece.rotationVelocity.y
-          piece.mesh.rotation.z += piece.rotationVelocity.z
-          
-          // Fade out paper
-          piece.mesh.material.opacity = 1 - this.unwrapProgress
-          piece.mesh.material.transparent = true
-
-          // Fall down
-          piece.velocity.y -= 0.0005
-        })
-      } else {
-        // Unwrap complete
-        if (this.onUnwrapComplete) {
-          this.onUnwrapComplete()
-        }
-        this.isUnwrapping = false
-      }
-    } else {
-      // Gentle rotation when not unwrapping
-      this.giftGroup.rotation.x += 0.001
-      this.giftGroup.rotation.y += 0.002
+  useFrame((state, delta) => {
+    if (!rootRef.current) {
+      return
     }
-  }
 
-  dispose() {
-    if (this.onMouseClick) {
-      window.removeEventListener('click', this.onMouseClick)
+    const elapsed = state.clock.elapsedTime
+    rootRef.current.rotation.y += delta * (opened ? 0.12 : 0.22)
+    rootRef.current.rotation.x = Math.sin(elapsed * 0.55) * 0.06
+    rootRef.current.position.y = opened ? 0.18 + Math.sin(elapsed * 1.6) * 0.05 : Math.sin(elapsed * 1.8) * 0.12
+
+    if (lidRef.current && opened) {
+      lidRef.current.rotation.z = Math.sin(elapsed * 1.8) * 0.03
     }
-  }
+
+    if (shimmerRef.current) {
+      shimmerRef.current.material.opacity = 0.08 + Math.sin(elapsed * 3.4) * 0.04
+    }
+  })
+
+  return (
+    <Float speed={1.2} rotationIntensity={0.38} floatIntensity={0.9}>
+      <group
+        ref={rootRef}
+        position={[0, -0.1, 0]}
+        onClick={(event) => {
+          event.stopPropagation()
+          if (!opened) {
+            onRequestOpen?.()
+          }
+        }}
+      >
+        <mesh ref={shimmerRef} position={[0, 0, 0]}>
+          <icosahedronGeometry args={[2.38, 0]} />
+          <meshStandardMaterial
+            color="#ff7ad9"
+            emissive="#ff2d8d"
+            emissiveIntensity={1.2}
+            transparent
+            opacity={0.08}
+            roughness={0.15}
+            metalness={0.1}
+          />
+        </mesh>
+
+        <RoundedBox ref={bodyRef} args={[2.45, 2.45, 2.45]} radius={0.18} smoothness={6}>
+          <meshStandardMaterial color="#ff4fa1" roughness={0.42} metalness={0.18} transparent opacity={1} />
+        </RoundedBox>
+
+        <group ref={lidRef} position={[0, 1.32, 0]}>
+          <RoundedBox args={[2.6, 0.48, 2.6]} radius={0.16} smoothness={6}>
+            <meshStandardMaterial color="#ff74b8" roughness={0.35} metalness={0.15} />
+          </RoundedBox>
+        </group>
+
+        <group ref={ribbonRef}>
+          <GiftRibbon />
+        </group>
+
+        <Text position={[0, 2.45, 0]} fontSize={0.28} color="#fff7cc" anchorX="center" anchorY="middle">
+          Tap the gift
+        </Text>
+
+        <Sparkles count={24} size={2.2} scale={[4, 4, 4]} speed={0.2} color="#ffe06b" />
+      </group>
+    </Float>
+  )
 }
