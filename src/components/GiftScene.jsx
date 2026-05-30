@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Canvas } from '@react-three/fiber'
 import { Environment, PerspectiveCamera, Sparkles } from '@react-three/drei'
@@ -9,6 +9,18 @@ import '../styles/GiftScene.css'
 
 export default function GiftScene({ showPhotos, onUnwrapComplete, onRestart }) {
   const [giftOpened, setGiftOpened] = useState(false)
+  const [isCompact, setIsCompact] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 720px)')
+
+    const update = () => setIsCompact(media.matches)
+
+    update()
+    media.addEventListener('change', update)
+
+    return () => media.removeEventListener('change', update)
+  }, [])
 
   const handleRequestOpen = () => {
     setGiftOpened(true)
@@ -26,8 +38,8 @@ export default function GiftScene({ showPhotos, onUnwrapComplete, onRestart }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.45 }}
     >
-      <Canvas dpr={[1, 1.75]} shadows>
-        <PerspectiveCamera makeDefault position={[0, 0.2, 7]} fov={40} />
+      <Canvas dpr={isCompact ? [1, 1.35] : [1, 1.75]} shadows>
+        <PerspectiveCamera makeDefault position={isCompact ? [0, 0.15, 5.35] : [0, 0.2, 7]} fov={isCompact ? 52 : 40} />
         <color attach="background" args={['#090b18']} />
         <fog attach="fog" args={['#090b18', 6, 15]} />
 
@@ -36,13 +48,15 @@ export default function GiftScene({ showPhotos, onUnwrapComplete, onRestart }) {
         <pointLight position={[-4, -1, 3]} intensity={1.6} color="#ff88d1" />
         <spotLight position={[0, 7, 6]} angle={0.4} intensity={18} penumbra={1} color="#ffd166" />
 
-        <Sparkles count={120} scale={[12, 8, 12]} size={2.5} speed={0.35} color="#ffe37d" />
+        <Sparkles count={isCompact ? 70 : 120} scale={isCompact ? [9, 6, 9] : [12, 8, 12]} size={2.5} speed={0.35} color="#ffe37d" />
 
-        <GiftUnwrap
-          opened={giftOpened}
-          onRequestOpen={handleRequestOpen}
-          onRevealComplete={handleRevealComplete}
-        />
+        <group scale={isCompact ? 0.88 : 1} position={[0, isCompact ? -0.16 : 0, 0]}>
+          <GiftUnwrap
+            opened={giftOpened}
+            onRequestOpen={handleRequestOpen}
+            onRevealComplete={handleRevealComplete}
+          />
+        </group>
 
         <Environment preset="night" />
 
@@ -60,6 +74,7 @@ export default function GiftScene({ showPhotos, onUnwrapComplete, onRestart }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
           >
+            <div className="gift-hud-handle" aria-hidden="true" />
             <p>Tap the gift to unlock the surprise</p>
             <button type="button" className="gift-action" onClick={handleRequestOpen}>
               Open the gift
