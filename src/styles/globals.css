@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+:root {
+  --color-bg: #050816;
+  --color-bg-soft: #0a0f2e;
+  --color-gold: #ffd700;
+  --color-gold-soft: #ffe566;
+  --color-rose: #ff6b9d;
+  --color-purple: #8b5cf6;
+  --color-cyan: #22d3ee;
+  --color-white: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.65);
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --glass-bg: rgba(10, 15, 46, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: 16px;
+
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-glow-gold: 0 0 40px rgba(255, 215, 0, 0.35);
+  --shadow-glow-rose: 0 0 30px rgba(255, 107, 157, 0.3);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
